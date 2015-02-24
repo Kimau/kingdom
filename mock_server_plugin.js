@@ -7,13 +7,32 @@ function local_db() {
     return window.localStorage[key];
   }
 
-  this.listKeys = function(keyPrefix) {
+  this.del = function(key) {
+    delete(window.localStorage[key]);
+  }
+
+  this.createKeyStream = function(options) {
     var l = [];
     for(k in window.localStorage) {
+      if(
+        (options.gt  == undefined || k >  options.gt)  &&
+        (options.gte == undefined || k >= options.gte) &&
+        (options.lt  == undefined || k >  options.lt)  &&
+        (options.lte == undefined || k <= options.lte) &&
+      )
       if(k.indexOf("user_") == 0) l.push(k);
+
+      if((options.limit > 0) && (options.limit >= l.length))
+        break;
     }
+
+    if(options.reverse)
+      l.reverse();
+
     return l;
   }
+
+  this.createReadStream
 
   return this;
 }
