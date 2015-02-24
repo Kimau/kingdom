@@ -48,6 +48,11 @@ kingdomControllers.controller('MyGameController', ['$scope', '$http', '$rootScop
     $scope.msgs = [];
 
     $scope.processResponse = function(status, data) {
+
+      switch(data.type) {
+        case "login": myToken = data.token;
+      }
+
       $scope.msgs.push(data);
     };
 

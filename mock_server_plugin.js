@@ -18,88 +18,101 @@ function local_db() {
   return this;
 }
 
+function tok(cmd) {
+  var b;
+  var stack = [];
+  cmd = cmd.replace(/[ \t]+/g, " ").split(" ");
+  for(i=0; i<cmd.length; ++i) {
+    var a = cmd[i].split("\"");
+    if(a.length == 1)
+      stack.push(cmd[i]);
+    else if(b) {
+      if(a[0]) stack.push(a[0]);
+      b.push(stack);
+      stack = b;
+      b = undefined;
+      if(a[1]) stack.push(a[1]);
+    } else {
+      if(a[0]) stack.push(a[0]);
+      b = stack;
+      stack = [];
+      if(a[1]) stack.push(a[1]);
+    }
+  }
+  return stack;
+}
+
 function local_server() {
   this.userTokens = {};
   this.db = new local_db();
   this.game = new kingdomGame(this.db);
 
-  this.makeError = function(msg, code) { return [code || 400, { text: msg }]; }
-  this.makeJSON = function(dataJSON) {
-    var jo = JSON.parse(JSON.stringify(dataJSON));
-    return [200,jo];
-  }
+  function makeError(cb, code, msg) { cb(code || 400, { content: msg }); }
+  function makeJSON(cb, dataJSON) { cb(200, JSON.parse(JSON.stringify(dataJSON))); }
 
-  this.create_user = function(user, pass) {
+  this.create_user = function(cb, user, pass) {
     if(user.match(/^[A-Za-z][A-Za-z0-9]+$/) == null)
-      return this.makeError("Invalid User Name");
+      return makeError(cb, 400, "Invalid User Name");
 
     if(this.db.get("user_" + user) !== undefined)
-      return this.makeError("Username already taken");
+      return makeError(cb, 400, "Username already taken");
 
     this.db.put("user_" + user, pass);
 
     var token = "token_" + Date.now() + "_user";
     this.userTokens[token] = user;
-    return this.makeJSON({"content": "registered as _" + user + "_", "type":"login", "token":token});
+    makeJSON(cb, {"content": "registered as _" + user + "_", "type":"login", "token":token});
   }
 
-  this.login = function(user, pass) {
+  this.login = function(cb, user, pass) {
     if(user.match(/^[A-Za-z][A-Za-z0-9]+$/) == null)
-      return this.makeError("Invalid User Name");
+      return makeError(cb, 400, "Invalid User Name");
     var dbPass = this.db.get("user_" + user)
     if((dbPass === undefined) || (dbPass !== pass))
-      return this.makeError("Password doesn't match");
+      return makeError(cb, 400, "Password doesn't match");
 
     var token = "token_" + Date.now() + "_user";
     this.userTokens[token] = user;
-    return this.makeJSON({"content": "logged in as _" + user + "_", "type":"login", "token":token});
+    makeJSON(cb, {"content": "logged in as _" + user + "_", "type":"login", "token":token});
   }
 
-  this.__listUsers = function() {
+  this.__listUsers = function(cb) {
     var ul = this.db.listKeys("user");
-    return this.makeJSON({"users" : ul, "content" : "User List: " + ul.toString()});
+    makeJSON(cb, {"users" : ul, "content" : "User List: " + ul.toString()});
   }
 
   this.submitCommand = function(cmd, token, cb) {
-    var cmdSplit;
+    var cmdSplit = tok(cmd);
+    var echoConsole = true;
     if(cb == undefined) {
       cb = function(a,b) { console.log([a,JSON.stringify(b)]); };
+    } else if(echoConsole) {
+      actual_cb = cb;
+      cb = function(a,b) { console.log([a,JSON.stringify(b)]); actual_cb(a,b); };
     }
 
-    if(cmd[0] == "$") {
-      // ADMIN command
-      cmdSplit = cmd.match(/^\$user_list$/);
-      if(cmdSplit) {
-        var x = this.__listUsers();
-        cb(x[0],x[1]);
+    switch(cmdSplit[0]) {
+      case "$user_list":
+        this.__listUsers(cb);
         return;
-      }
+      case "signup":
+        this.create_user(cb, cmdSplit[1], cmdSplit[2]);
+        return;
+      case "login":
+        this.login(cb, cmdSplit[1], cmdSplit[2]);
+        return;
+      default:
+        var user = this.userTokens[token];
+        if(user === undefined)
+          return makeError(cb, 400, "Invalid Auth Token");
+
+        return makeError(cb, 400, "Unknown command [" + cmdSplit[0] + "]");
     }
 
-    cmdSplit = cmd.match(/^signup ([A-Za-z][A-Za-z0-9]+) ([^ ]+)$/);
-    if(cmdSplit) {
-      var x = this.create_user(cmdSplit[1], cmdSplit[2]);
-      cb(x[0],x[1]);
-      return;
-    }
-
-    cmdSplit = cmd.match(/^login ([A-Za-z][A-Za-z0-9]+) ([^ ]+)$/);
-    if(cmdSplit) {
-      var x = this.login(cmdSplit[1], cmdSplit[2]);
-      cb(x[0],x[1]);
-      return;
-    }
-
-    cmdSplit = cmd
-
-    var user = this.userTokens[token];
-    if(user === undefined)
-      return this.makeError("Invalid Auth Token");
-
-    //
-
-    return this.makeError("Unknown Command");
+    return makeError(cb, 400, "Unknown command [" + cmdSplit[0] + "]");
   }
+
+
   return this;
 }
 
