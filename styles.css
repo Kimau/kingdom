@@ -1,0 +1,153 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+body {
+  padding: 1vmin;
+  background: #DDDEDF;
+  color: #1B1B1B;
+  overflow: hidden;
+  font-size: 2.5vh;
+}
+
+header {
+  height: 9vh;
+}
+
+header h1 {
+  position: absolute;
+  top: 1vh;
+  left: 0px;
+  right: 0px;
+  text-align: center;
+  background: #8A83B8;
+  font-family: monospace;
+  white-space: nowrap;
+  padding: 1vh;
+}
+
+.button {
+  position: relative;
+  transition: all 800ms;
+  box-shadow: 0px 0px 5px #000;
+}
+
+.button:hover {
+  box-shadow: 2px 2px 5px #000;
+  left: -2px;
+  top: -2px;
+  transition: all 100ms;
+}
+
+.menuButton {
+  background: #71A1D8;
+  padding: 1vmax;
+  margin: 0 auto 1.5vh auto;
+  width: 80vw;
+  text-align: center;
+  font-family: sans-serif;
+  font-size: 4vh;
+}
+
+.menuButton .name {
+
+}
+
+.profile {
+  position: absolute;
+  display: block;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #111;
+  height: 8vh;
+  padding: 0 0 0 12vh;
+  box-shadow: 0 -2px rgba(0,0,0,0.5);
+}
+
+.profile .avatar {
+  display: block;
+  width: 8vh;
+  height: 8vh;
+  background: #DDD;
+  border-radius: 20vw;
+  position: absolute;
+  left: 2vh;
+  bottom: 1vh;
+  max-height: 20vh;
+  max-width: 20vh;
+  box-shadow: 2px -2px 5px #000;
+  border: 0.5vh solid;
+}
+
+.profile .name {
+  font-family: cursive;
+  font-size: 3vh;
+}
+
+.profile .notification {
+  background: #000;
+  border: 2px solid #F00;
+  position: absolute;
+  right: 1vw;
+  width: 8vmin;
+  height: 8vmin;
+  top: -1vh;
+  display: block;
+  border-radius: 2vw;
+  font-family: cursive;
+  text-align: center;
+  font-size: 5vmin;
+  padding: 1vmin;
+}
+
+#game {
+  text-align: center;
+  position: relative;
+}
+
+#msgScroll {
+  display: block;
+  box-shadow: 0 0 5px #000;
+  overflow-y: scroll;
+  height: 84vh;
+  width: 95vw;
+  margin: 0 auto 0 auto;
+  text-align: left;
+}
+
+.msg {
+  display: block;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.msg:nth-child(odd) {
+  background: rgba(255,255,255,0.3);
+}
+
+#game form {
+  background: #9595C0;
+  padding: 1vh;
+}
+
+#game form input[type="text"] {
+  width: 80vw;
+}
+
+#game form input[type="submit"] {
+  width: 5vw;
+}
+
+.col_me { color: white; border-color: white; }
+.col_red { color: red; border-color: red; }
+.col_blue { color: blue; border-color: blue; }
+.col_green { color: green; border-color: green; }
+.col_pink { color: pink; border-color: pink; }
+.col_orange { color: orange; border-color: orange; }
+.col_purple { color: purple; border-color: purple; }
+.col_aqua { color: aqua; border-color: aqua; }
+.col_lime { color: lime; border-color: lime; }
+.col_maroon { color: maroon; border-color: maroon; }
+.col_brown { color: brown; border-color: brown; }

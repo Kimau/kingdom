@@ -1,0 +1,20 @@
+<header ng-click="goHome()">
+    <h1>Kingdoms</h1>
+</header>
+
+<div id="game">
+  <div id="msgScroll" scroll-glue>
+    <span class="msg" ng-repeat="m in msgs" ng-bind-html="m.content"></span>
+  </div>
+  <form ng-submit="submitCommand()">
+    <input id="newMsgText" type="text"ng-model="cmdInputText" name="cmdInputText" ng-disabled="isWaiting"></input>
+    <input type="submit" value="X"></input>
+  </form>
+</div>
+
+<!-- PROFILE -->
+<footer class="profile" ng-show="profile" ng-class="profile.cssClass">
+  <div class="avatar" ng-style="profile.avatarBGStyle"></div>
+  <div class="name" ng-bind="profile.playerName"></div>
+  <div class="notification" ng-show="profile.notification" ng-bind="profile.notification"></div>
+<//footer>

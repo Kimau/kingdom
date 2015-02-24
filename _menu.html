@@ -1,0 +1,16 @@
+<header ng-click="goHome()">
+    <h1>Kingdoms</h1>
+</header>
+
+<div id="menu">
+  <div class="button menuButton" ng-repeat="mb in menuButtons">
+    <span class="name" ng-bind="mb.name"></span>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<footer class="profile" ng-show="profile" ng-class="profile.cssClass">
+  <div class="avatar" ng-style="profile.avatarBGStyle"></div>
+  <div class="name" ng-bind="profile.playerName"></div>
+  <div class="notification" ng-show="profile.notification" ng-bind="profile.notification"></div>
+<//footer>
