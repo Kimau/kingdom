@@ -1,10 +1,17 @@
 function local_db() {
   this.put = function(key, value) {
+    if(typeof(value) == "object")
+      value = JSON.stringify(value);
     window.localStorage[key] = value;
   }
 
   this.get = function(key) {
-    return window.localStorage[key];
+    var value = window.localStorage[key];
+    if(value == undefined) return undefined;
+    else if(value[0] == "{") value = JSON.parse(value);
+    else if(!isNaN(parseInt(value))) value = parseInt(value);
+
+    return value;
   }
 
   this.del = function(key) {
@@ -18,9 +25,8 @@ function local_db() {
         (options.gt  == undefined || k >  options.gt)  &&
         (options.gte == undefined || k >= options.gte) &&
         (options.lt  == undefined || k >  options.lt)  &&
-        (options.lte == undefined || k <= options.lte) &&
-      )
-      if(k.indexOf("user_") == 0) l.push(k);
+        (options.lte == undefined || k <= options.lte))
+        l.push(k);
 
       if((options.limit > 0) && (options.limit >= l.length))
         break;
@@ -64,7 +70,7 @@ function tok(cmd) {
 function local_server() {
   this.userTokens = {};
   this.db = new local_db();
-  this.game = new kingdomGame(this.db);
+  this.game = new kingdomGame(this.db, "TestGame");
 
   function makeError(cb, code, msg) { cb(code || 400, { content: msg }); }
   function makeJSON(cb, dataJSON) { cb(200, JSON.parse(JSON.stringify(dataJSON))); }
@@ -95,6 +101,15 @@ function local_server() {
     makeJSON(cb, {"content": "logged in as _" + user + "_", "type":"login", "token":token});
   }
 
+  this.logout = function(cb, token) {
+    var user = this.userTokens[token];
+    if(user == undefined)
+      return makeError(cb, 400, "Invalid token are you logged in?");
+
+    delete(this.userTokens[token]);
+    makeJSON(cb, {"content": "logged out _" + user + "_", "type":"logout"});
+  }
+
   this.__listUsers = function(cb) {
     var ul = this.db.listKeys("user");
     makeJSON(cb, {"users" : ul, "content" : "User List: " + ul.toString()});
@@ -110,6 +125,8 @@ function local_server() {
       cb = function(a,b) { console.log([a,JSON.stringify(b)]); actual_cb(a,b); };
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    // Login Commands
     switch(cmdSplit[0]) {
       case "$user_list":
         this.__listUsers(cb);
@@ -120,15 +137,31 @@ function local_server() {
       case "login":
         this.login(cb, cmdSplit[1], cmdSplit[2]);
         return;
-      default:
-        var user = this.userTokens[token];
-        if(user === undefined)
-          return makeError(cb, 400, "Invalid Auth Token");
-
-        return makeError(cb, 400, "Unknown command [" + cmdSplit[0] + "]");
+      case "logout":
+        this.logout(cb, token);
+        return;
     }
 
-    return makeError(cb, 400, "Unknown command [" + cmdSplit[0] + "]");
+    var user = this.userTokens[token];
+    if(user === undefined)
+      return makeError(cb, 400, "Invalid Auth Token");
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Admin Commands
+    switch(cmdSplit[0]) {
+      case "$user_list":
+        this.__listUsers(cb);
+        return;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Game Commands
+    this.game.submitCommand(user, cmdSplit, function(result) {
+      if(typeof(result) == "string")
+      return makeError(cb, 500, result);
+    else
+      return makeJSON(cb, result);
+    });
   }
 
 

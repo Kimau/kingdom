@@ -16,9 +16,13 @@ kingdomApp.config(['$routeProvider',
         templateUrl: '_game.html',
         controller: 'MyGameController'
       }).
-      when('/', {
+      when('/menu', {
         templateUrl: '_menu.html',
         controller: 'MyMenuController'
+      }).
+      when('/', {
+        templateUrl: '_game.html',
+        controller: 'MyDebugController'
       }).
       otherwise({
         redirectTo: '/'
@@ -50,7 +54,8 @@ kingdomControllers.controller('MyGameController', ['$scope', '$http', '$rootScop
     $scope.processResponse = function(status, data) {
 
       switch(data.type) {
-        case "login": myToken = data.token;
+        case "login": myToken = data.token; break;
+        case "logout": myToken = 0; break;
       }
 
       $scope.msgs.push(data);
@@ -63,5 +68,37 @@ kingdomControllers.controller('MyGameController', ['$scope', '$http', '$rootScop
       server.submitCommand($scope.cmdInputText, myToken, $scope.processResponse);
       $scope.cmdInputText = "";
     };
+
+  }]);
+
+kingdomControllers.controller('MyDebugController', ['$scope', '$http', '$rootScope', '$routeParams',
+  function($scope, $http, $rootScope, $routeParams) {
+    hackScope = $scope;
+    $scope.echo = true;
+    $scope.gameID = $routeParams.ID;
+
+    $scope.msgs = [];
+
+    $scope.processResponse = function(status, data) {
+
+      switch(data.type) {
+        case "login": myToken = data.token; break;
+        case "logout": myToken = 0; break;
+      }
+
+      $scope.msgs.push(data);
+    };
+
+    $scope.submitCommand = function() {
+      console.log($scope.cmdInputText);
+      if($scope.echo)
+        $scope.msgs.push({ content: ">" + $scope.cmdInputText});
+      server.submitCommand($scope.cmdInputText, myToken, $scope.processResponse);
+      $scope.cmdInputText = "";
+    };
+
+    // DEBUG stuff
+    $scope.cmdInputText = "login kim qwerty"
+    $scope.submitCommand();
 
   }]);
